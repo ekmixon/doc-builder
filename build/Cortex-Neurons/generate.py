@@ -33,26 +33,24 @@ def neuron2md(nt,neuron, doc_path):
 
   # Title 
   neuron_path =path.join(nt,neuron)
-  mdFile = MdUtils(file_name="{}.md".format(neuron),title="")
+  mdFile = MdUtils(file_name=f"{neuron}.md", title="")
   mdFile.new_header(level=1, title=neuron)
 
   # add README.md file  in description
   mdFile.new_line()
   if 'README.md' in listdir(neuron_path):
-    readme = open("{}/README.md".format(neuron_path), 'r')
+    readme = open(f"{neuron_path}/README.md", 'r')
     mdFile.new_line("!!! abstract \"README\"")
     mdFile.new_paragraph("    {}".format(readme.read().replace('\n','\n    ')))
     readme.close
 
-  #print(neuron)
-    # Analyzers or Responders flavors
   for f in listdir(path.join(nt,neuron)):
     if nt in ["analyzers", "responders"] and f.endswith(".json"):
       with open(path.join(neuron_path, f),'r') as fc:
         config = json.load(fc)
         # Title
         mdFile.new_header(level=2, title=config.get('name'))
-        
+
         # Logo
         if config.get('service_logo'):
           logo_path = config.get('service_logo').get('path')
@@ -61,7 +59,7 @@ def neuron2md(nt,neuron, doc_path):
             logo_filename = path.basename(logo_path)
             ext = logo_filename.split('.')[-1]
             logo_filename = logo_filename.split('.')[0]
-            logo_filename = "{}_logo.{}".format(f.split('.')[0],ext)
+            logo_filename = f"{f.split('.')[0]}_logo.{ext}"
             logo_md_path = path.join("assets", logo_filename)
             logo_dest_path = path.join(doc_path,nt,logo_md_path)
             copy(logo_src_path, logo_dest_path)
@@ -72,15 +70,15 @@ def neuron2md(nt,neuron, doc_path):
 
         # Identity
         mdFile.new_line("!!! note \"\"")
-        mdFile.new_line("    **Author**: _{}_".format(config.get('author')))
-        mdFile.new_line("    **License**: _{}_".format(config.get('license')))
-        mdFile.new_line("    **Version**: _{}_".format(config.get('version')))
+        mdFile.new_line(f"    **Author**: _{config.get('author')}_")
+        mdFile.new_line(f"    **License**: _{config.get('license')}_")
+        mdFile.new_line(f"    **Version**: _{config.get('version')}_")
         if nt == "analyzers":
           mdFile.new_line("    **Supported observables types**:")
         else:
           mdFile.new_line("    **Supported data types**:")
         for item in config.get('dataTypeList'):
-          mdFile.new_line("      - {}".format(item))
+          mdFile.new_line(f"      - {item}")
         mdFile.new_line("    **Registration required**: \
           _{}_".format(config.get('registration_required','N/A')))
         mdFile.new_line("    **Subscription required**: \
@@ -89,38 +87,48 @@ def neuron2md(nt,neuron, doc_path):
           _{}_".format(config.get('free_subscription','N/A')))
         mdFile.new_line('    **Third party service**: '+\
           mdFile.new_inline_link(link=config.get('service_homepage', 'N/A'), text=config.get('service_homepage', 'N/A')))
-        
+
         # Description
         mdFile.new_line()
         mdFile.new_header(level=3, title='Description')
         mdFile.new_paragraph(config.get('description', 'N/A'))
-        
-      
+
+
         # Configuration
         mdFile.new_line()
         mdFile.new_header(level=3, title='Configuration')
-        
+
         if config.get('configurationItems') and len(config.get('configurationItems')) > 0:
           for c in config.get('configurationItems'):
-            configuration_items = ["**{}**".format(c.get('name')), c.get('description', 'No description')]
-            configuration_items.extend(["**Default value if not configured**",  "_{}_".format(c.get('defaultValue', 'N/A'))])
-            configuration_items.extend(["**Type of the configuration item**",  "_{}_".format(c.get('type'))])
-            configuration_items.extend(["**The configuration item can contain multiple values**",  "_{}_".format(c.get('multi'))])
-            configuration_items.extend(["**Is required**",  "_{}_".format(c.get('required'))])
+            configuration_items = [
+                f"**{c.get('name')}**",
+                c.get('description', 'No description'),
+            ]
+            configuration_items.extend([
+                "**Default value if not configured**",
+                f"_{c.get('defaultValue', 'N/A')}_",
+            ])
+            configuration_items.extend(
+                ["**Type of the configuration item**", f"_{c.get('type')}_"])
+            configuration_items.extend([
+                "**The configuration item can contain multiple values**",
+                f"_{c.get('multi')}_",
+            ])
+            configuration_items.extend(["**Is required**", f"_{c.get('required')}_"])
             mdFile.new_line()
             mdFile.new_table(columns=2, rows=5, text=configuration_items, text_align='left')
 
         else:
           mdFile.new_paragraph("No specific configuration required.")
-    
-        #  Notes.md file 
+
+        #  Notes.md file
         if 'notes.md' in listdir(neuron_path):
-          notes = open("{}/notes.md".format(neuron_path), 'r')
+          notes = open(f"{neuron_path}/notes.md", 'r')
           mdFile.new_line("!!! tip \"Developer notes\"")
           mdFile.new_paragraph("    {}".format(notes.read().replace('\n','\n    ')))
           notes.close
-    
-    # Analysers report samples 
+
+    # Analysers report samples
     if nt == "analyzers" and f.endswith(".json"):
       # Templates for TheHive
       mdFile.new_line()
@@ -136,7 +144,7 @@ def neuron2md(nt,neuron, doc_path):
             sc_filename = path.basename(sc.get('path'))
             ext = sc_filename.split('.')[-1]
             sc_filename = path.basename(f).split('.')[0]
-            sc_filename="{}_{}.{}".format(sc_filename,idx,ext)
+            sc_filename = f"{sc_filename}_{idx}.{ext}"
             sc_md_path = path.join("assets",sc_filename)
             sc_dest_path =path.join(doc_path,nt,sc_md_path)
             copy(sc_src_path, sc_dest_path)
@@ -228,7 +236,7 @@ def build_mkdocs(md_path, mkdocs_filename):
 
   nav1['nav'] = nav1.get('nav')+nav2
   mk.update(nav1)
-  
+
   with open(mkdocs_filename, 'w') as yml:
     yml.write(yaml.dump(mk))
   yml.close()
@@ -245,7 +253,7 @@ def run():
     if path.exists(nt):
       for neuron in [d for d in listdir(nt) if path.isdir(path.join(nt,d))]:
         neuron2md(nt, neuron, doc_path)
-  
+
   # Build mkdocs file
   build_mkdocs(doc_path, mkdocs_filename)
 
